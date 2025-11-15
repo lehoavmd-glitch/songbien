@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Mô phỏng sóng biển</title>
+
+    <!-- PyScript -->
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #87ceeb;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            background: #1e90ff;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="waveCanvas"></canvas>
+
+<py-script>
+from js import document, window
+import math
+
+canvas = document.getElementById("waveCanvas")
+ctx = canvas.getContext("2d")
+
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
+
+A = 20
+wavelength = 200
+speed = 0.05
+wind_strength = 1
+
+def update_wave_strength():
+    global A, wind_strength
+    A = 10 + wind_strength * 15
+
+def draw(t):
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = "#1e90ff"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.lineWidth = 2
+    ctx.strokeStyle = "white"
+
+    ctx.beginPath()
+    for x in range(canvas.width):
+        y = canvas.height/2 + A * math.sin((x / wavelength) + t * speed)
+        ctx.lineTo(x, y)
+    ctx.stroke()
+
+    import random
+    for i in range(40):
+        cx = random.randint(0, canvas.width)
+        cy = canvas.height/2 + A * math.sin((cx / wavelength) + t * speed)
+        ctx.fillStyle = "rgba(255,255,255,0.6)"
+        ctx.fillRect(cx, cy, 3, 3)
+
+    window.requestAnimationFrame(draw)
+
+window.requestAnimationFrame(draw)
+</py-script>
+
+</body>
+</html>
+
+
