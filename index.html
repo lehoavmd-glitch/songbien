@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Wave Simulation</title>
-
-    <!-- PyScript -->
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <meta charset="UTF-8">
+    <title>Wave + Boat</title>
 
     <style>
         body, html {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background: #87CEEB; /* sky blue */
+            background: #6EC6FF; /* màu trời */
         }
         canvas {
             display: block;
@@ -22,53 +18,95 @@
 </head>
 
 <body>
-    <canvas id="waveCanvas"></canvas>
+<canvas id="waveCanvas"></canvas>
 
-    <py-script>
-from js import document, window
-import math, random
+<script>
+// =========================
+//  Canvas setup
+// =========================
+const canvas = document.getElementById("waveCanvas");
+const ctx = canvas.getContext("2d");
 
-canvas = document.getElementById("waveCanvas")
-ctx = canvas.getContext("2d")
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.onresize = resize;
 
-def resize_canvas():
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+// =========================
+//  Customizable Settings
+// =========================
+// MỤC 5: Bạn có thể chỉnh mọi thứ ở đây
+let waveHeight = 20;       // độ cao sóng
+let waveLength = 200;      // bước sóng
+let waveSpeed = 0.02;      // tốc độ sóng
+let waterColor = "#0099ff"; // màu nước
+let boatYoffset = 10;       // độ con thuyền lắc lên xuống
 
-resize_canvas()
-window.onresize = resize_canvas
+// =========================
+//  Boat (simple icon)
+// =========================
+const boat = new Image();
+boat.src = "https://i.imgur.com/VQ8pEsO.png"; 
+// (Bạn có thể đổi sang ảnh thuyền bạn muốn)
 
-A = 20
-wavelength = 200
-speed = 0.05
-wind_strength = 1
+// =========================
+//  Draw Wave
+// =========================
+function drawWave(t) {
+    ctx.fillStyle = waterColor;
+    ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height);
 
-def draw(t):
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = "#1e90ff"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height * 0.45);
 
-    ctx.lineWidth = 2
-    ctx.strokeStyle = "white"
+    for (let x = 0; x < canvas.width; x++) {
+        let y = Math.sin((x + t * 200) / waveLength) * waveHeight;
+        ctx.lineTo(x, canvas.height * 0.45 + y);
+    }
 
-    ctx.beginPath()
-    for x in range(canvas.width):
-        y = canvas.height/2 + A * math.sin((x / wavelength) + t * speed)
-        ctx.lineTo(x, y)
-    ctx.stroke()
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.lineTo(0, canvas.height);
+    ctx.closePath();
+    ctx.fill();
+}
 
-    # Foam
-    for i in range(40):
-        cx = random.randint(0, canvas.width)
-        cy = canvas.height/2 + A * math.sin((cx / wavelength) + t * speed)
-        ctx.fillStyle = "rgba(255,255,255,0.6)"
-        ctx.fillRect(cx, cy, 3, 3)
+// =========================
+//  Draw Boat floating
+// =========================
+function drawBoat(t) {
+    if (!boat.complete) return; // chờ ảnh tải
 
-    window.requestAnimationFrame(draw)
+    let boatX = canvas.width * 0.5 - 60;
+    let boatY = canvas.height * 0.45 - 50;
 
-window.requestAnimationFrame(draw)
-    </py-script>
+    // hiệu ứng lắc
+    let float = Math.sin(t * 2) * boatYoffset;
+
+    ctx.drawImage(boat, boatX, boatY + float, 120, 80);
+}
+
+// =========================
+//  Animation Loop
+// =========================
+let t = 0;
+function animate() {
+    t += waveSpeed;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawWave(t);
+    drawBoat(t);
+
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
 </body>
 </html>
+
+
 
 
