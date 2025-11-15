@@ -1,112 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Wave + Boat</title>
+<meta charset="UTF-8" />
+<title>Biển và Xoáy Nước</title>
 
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #6EC6FF; /* màu trời */
-        }
-        canvas {
-            display: block;
-        }
-    </style>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #b8eaff; /* sky blue */
+        font-family: sans-serif;
+    }
+
+    #windText {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 32px;
+        font-weight: bold;
+        color: #0066cc;
+    }
+
+    #windArrow {
+        position: absolute;
+        top: 60px;
+        left: 10%;
+        width: 80%;
+        height: 10px;
+        background: #0099ff;
+        animation: windMove 3s linear infinite;
+    }
+
+    @keyframes windMove {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(50px); }
+    }
+</style>
 </head>
 
 <body>
-<canvas id="waveCanvas"></canvas>
+
+<div id="windText">GIÓ ➜</div>
+<div id="windArrow"></div>
+
+<canvas id="ocean"></canvas>
 
 <script>
-// =========================
-//  Canvas setup
-// =========================
-const canvas = document.getElementById("waveCanvas");
-const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById("ocean");
+    const ctx = canvas.getContext("2d");
 
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resize();
-window.onresize = resize;
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.onresize = resize;
 
-// =========================
-//  Customizable Settings
-// =========================
-// MỤC 5: Bạn có thể chỉnh mọi thứ ở đây
-let waveHeight = 20;       // độ cao sóng
-let waveLength = 200;      // bước sóng
-let waveSpeed = 0.02;      // tốc độ sóng
-let waterColor = "#0099ff"; // màu nước
-let boatYoffset = 10;       // độ con thuyền lắc lên xuống
+    // Sóng
+    let t = 0;
 
-// =========================
-//  Boat (simple icon)
-// =========================
-const boat = new Image();
-boat.src = "https://i.imgur.com/VQ8pEsO.png"; 
-// (Bạn có thể đổi sang ảnh thuyền bạn muốn)
-
-// =========================
-//  Draw Wave
-// =========================
-function drawWave(t) {
-    ctx.fillStyle = waterColor;
-    ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height);
-
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height * 0.45);
-
-    for (let x = 0; x < canvas.width; x++) {
-        let y = Math.sin((x + t * 200) / waveLength) * waveHeight;
-        ctx.lineTo(x, canvas.height * 0.45 + y);
+    // Xoáy nước
+    const vortices = [];
+    for (let i = 0; i < 12; i++) {
+        vortices.push({
+            x: i * 150 + 50,
+            y: canvas.height - 120,
+            r: 25,
+            angle: Math.random() * Math.PI * 2
+        });
     }
 
-    ctx.lineTo(canvas.width, canvas.height);
-    ctx.lineTo(0, canvas.height);
-    ctx.closePath();
-    ctx.fill();
-}
+    function drawWave() {
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - 150);
 
-// =========================
-//  Draw Boat floating
-// =========================
-function drawBoat(t) {
-    if (!boat.complete) return; // chờ ảnh tải
+        for (let x = 0; x < canvas.width; x++) {
+            let y = canvas.height - 150 + Math.sin(x * 0.01 + t) * 35
+                                        + Math.sin(x * 0.03 + t * 1.5) * 15;
+            ctx.lineTo(x, y);
+        }
 
-    let boatX = canvas.width * 0.5 - 60;
-    let boatY = canvas.height * 0.45 - 50;
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.closePath();
 
-    // hiệu ứng lắc
-    let float = Math.sin(t * 2) * boatYoffset;
+        ctx.fillStyle = "#0088dd";
+        ctx.fill();
+    }
 
-    ctx.drawImage(boat, boatX, boatY + float, 120, 80);
-}
+    function drawBigWave() {
+        let baseY = canvas.height - 180 + Math.sin(t * 0.7) * 20;
 
-// =========================
-//  Animation Loop
-// =========================
-let t = 0;
-function animate() {
-    t += waveSpeed;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width * 0.6, baseY);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let x = canvas.width * 0.6; x < canvas.width; x++) {
+            let y = baseY - Math.sin((x * 0.02) + t) * (80 + (x - canvas.width * 0.6) * 0.15);
+            ctx.lineTo(x, y);
+        }
 
-    drawWave(t);
-    drawBoat(t);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
 
-    requestAnimationFrame(animate);
-}
-animate();
+    function drawVortices() {
+        vortices.forEach(v => {
+            v.angle += 0.08;
+
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 2; a += 0.3) {
+                let r = v.r + Math.sin(a * 3 + v.angle) * 4;
+                let x = v.x + Math.cos(a) * r;
+                let y = v.y + Math.sin(a) * r;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawWave();
+        drawBigWave();
+        drawVortices();
+
+        t += 0.05;
+        requestAnimationFrame(animate);
+    }
+
+    animate();
 </script>
 
 </body>
 </html>
-
-
-
-
