@@ -2,49 +2,49 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>Mô phỏng sóng biển</title>
+    <title>Wave Simulation</title>
 
     <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 
     <style>
-        body {
+        body, html {
             margin: 0;
-            background: #87ceeb;
+            padding: 0;
             overflow: hidden;
+            background: #87CEEB; /* sky blue */
         }
         canvas {
             display: block;
-            background: #1e90ff;
         }
     </style>
 </head>
+
 <body>
+    <canvas id="waveCanvas"></canvas>
 
-<canvas id="waveCanvas"></canvas>
-
-<py-script>
+    <py-script>
 from js import document, window
-import math
+import math, random
 
 canvas = document.getElementById("waveCanvas")
 ctx = canvas.getContext("2d")
 
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+def resize_canvas():
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+
+resize_canvas()
+window.onresize = resize_canvas
 
 A = 20
 wavelength = 200
 speed = 0.05
 wind_strength = 1
 
-def update_wave_strength():
-    global A, wind_strength
-    A = 10 + wind_strength * 15
-
 def draw(t):
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-
     ctx.fillStyle = "#1e90ff"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -57,7 +57,7 @@ def draw(t):
         ctx.lineTo(x, y)
     ctx.stroke()
 
-    import random
+    # Foam
     for i in range(40):
         cx = random.randint(0, canvas.width)
         cy = canvas.height/2 + A * math.sin((cx / wavelength) + t * speed)
@@ -67,8 +67,7 @@ def draw(t):
     window.requestAnimationFrame(draw)
 
 window.requestAnimationFrame(draw)
-</py-script>
-
+    </py-script>
 </body>
 </html>
 
